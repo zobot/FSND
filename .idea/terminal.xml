@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="TerminalProjectOptionsProvider">
+    <envs>
+      <env key="FLASK_APP" value="$PROJECT_DIR$/projects/01_fyyur/starter_code/app.py" />
+      <env key="PYTHONPATH" value="$PROJECT_DIR$/projects/01_fyyur/starter_code:$PYTHONPATH" />
+    </envs>
+    <option name="myStartingDirectory" value="$PROJECT_DIR$/projects/01_fyyur/starter_code" />
+  </component>
+</project>
