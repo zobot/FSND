@@ -2,7 +2,7 @@
 # Imports
 # ----------------------------------------------------------------------------#
 
-import os
+import os, sys
 import json
 import dateutil.parser
 import babel
@@ -88,6 +88,12 @@ def format_datetime(value, format='medium'):
 
 
 app.jinja_env.filters['datetime'] = format_datetime
+
+
+def extract_genres(genre_string):
+    """Extract the list of genres from the genre string stored in the db.  Inverse of form submit."""
+    result = list(map(lambda x: x.strip("'"), genre_string.strip('[]').split(', ')))
+    return result
 
 
 # ----------------------------------------------------------------------------#
@@ -243,13 +249,31 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
+    try:
+        form = request.form
+        venue = Venue(
+            name=form['name'],
+            city=form['city'],
+            state=form['state'],
+            address=form['address'],
+            phone=form['phone'],
+            genres=str(form.getlist('genres')),  # can have multiple here, store them as a string of the list
+            facebook_link=form['facebook_link']
+        )
+        data = venue
+        db.session.add(venue)
+        db.session.commit()
+        # on successful db insert, flash success
+        flash('Venue ' + data.name + ' was successfully listed!')
+    except:
+        db.session.rollback()
+        error = True
+        print(sys.exc_info())
+        # on unsuccessful db insert, flash an error instead.
+        flash('An error occurred. Venue ' + data.name + ' could not be listed.')
+    finally:
+        db.session.close()
 
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
