@@ -491,6 +491,19 @@ def shows():
     # displays list of shows at /shows
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
+    show = Show.query.all()[0]
+    data = [
+        {
+            "venue_id": show.venue_id,
+            "venue_name": show.venue.name,
+            "artist_id": show.artist_id,
+            "artist_name": show.artist.name,
+            "artist_image_link": show.artist.image_link,
+            "start_time": format_datetime(str(show.start_time)),
+        }
+        for show in Show.query.all()
+    ]
+    """
     data = [{
         "venue_id": 1,
         "venue_name": "The Musical Hop",
@@ -527,6 +540,7 @@ def shows():
         "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
         "start_time": "2035-04-15T20:00:00.000Z"
     }]
+    """
     return render_template('pages/shows.html', shows=data)
 
 
