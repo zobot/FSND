@@ -525,21 +525,21 @@ def create_show_submission():
 
 
 def create_record(form, record_type):
+    name = ""
     try:
-        print(form)
         if record_type != "Show":
+            name = " " + form['name']
             if record_type == "Venue":
                 data = Venue(**form)
-                name = " " + data.name
             elif record_type == "Artist":
                 data = Artist(**form)
-                name = " " + data.name
             data.genres = str(form.getlist('genres'))  # store genres as a string of the list of genres
         else:
             data = Show(**form)
-            name = ""
         db.session.add(data)
         db.session.commit()
+        if record_type == "Show":
+            name = " " + str(data.id)
         # on successful db insert, flash success
         flash(record_type + name + ' was successfully listed!')
     except:
