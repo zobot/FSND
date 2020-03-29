@@ -435,7 +435,6 @@ def create_artist_submission():
 @app.route('/shows')
 def shows():
     # displays list of shows at /shows
-    show = Show.query.all()[0]
     data = [
         {
             "venue_id": show.venue_id,
