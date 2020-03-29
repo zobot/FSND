@@ -316,28 +316,48 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-    form = ArtistForm()
-    artist = {
-        "id": 4,
-        "name": "Guns N Petals",
-        "genres": ["Rock n Roll"],
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "326-123-5000",
-        "website": "https://www.gunsnpetalsband.com",
-        "facebook_link": "https://www.facebook.com/GunsNPetals",
-        "seeking_venue": True,
-        "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-        "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-    }
-    # TODO: populate form with fields from artist with ID <artist_id>
+    artist = Artist.query.get(artist_id)
+
+    # populate artist form with current data
+    form = ArtistForm(
+        name=artist.name,
+        city=artist.city,
+        state=artist.state,
+        phone=artist.phone,
+        facebook_link=artist.facebook_link,
+        genres=extract_genres(artist.genres),
+    )
+
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-    # TODO: take values from the form submitted, and update existing
+    # takes values from the form submitted, and update existing
     # artist record with ID <artist_id> using the new attributes
+    form = request.form
+    name = ""
+    try:
+        artist = Artist.query.get(artist_id)
+        artist.name = form['name']
+        artist.city = form['city']
+        artist.state = form['state']
+        artist.phone = form['phone']
+        artist.genres = str(form.getlist('genres'))  # store genres as a string of the list of genres
+        artist.facebook_link = form['facebook_link']
+        db.session.add(artist)
+        db.session.commit()
+        name = " " + str(artist.id)
+        # on successful db update, flash success
+        flash("Artist" + name + ' was successfully edited!')
+    except:
+        db.session.rollback()
+        error = True
+        print(sys.exc_info())
+        # on unsuccessful db update, flash an error instead.
+        flash('An error occurred. Artist' + name + ' could not be edited.')
+    finally:
+        db.session.close()
 
     return redirect(url_for('show_artist', artist_id=artist_id))
 
