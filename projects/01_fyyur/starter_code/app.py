@@ -2,7 +2,7 @@
 # Imports
 # ----------------------------------------------------------------------------#
 
-import os, sys
+import os, sys, datetime
 import json
 import dateutil.parser
 import babel
@@ -110,8 +110,26 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
+    venues = Venue.query.all()
+    cities_states_set = {(venue.city, venue.state) for venue in venues}  # set of all city, state pairs
+    # populate the data dictionary according to how the html template expects it
+    data = [
+        {
+            "city": city,
+            "state": state,
+            "venues": [
+                {
+                    "id": venue.id,
+                    "name": venue.name,
+                    "num_upcoming_shows": Show.query.filter_by(venue_id=venue.id).filter(Show.start_time > datetime.now()).count()
+                }
+                for venue in Venue.query.filter_by(city=city, state=state).all()
+            ]
+        }
+        for (city, state) in cities_states_set
+    ]
+    print(data)
+    """
     data = [{
         "city": "San Francisco",
         "state": "CA",
@@ -133,6 +151,7 @@ def venues():
             "num_upcoming_shows": 0,
         }]
     }]
+    """
     return render_template('pages/venues.html', areas=data);
 
 
