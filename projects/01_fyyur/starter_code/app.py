@@ -249,32 +249,10 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    try:
-        form = request.form
-        venue = Venue(
-            name=form['name'],
-            city=form['city'],
-            state=form['state'],
-            address=form['address'],
-            phone=form['phone'],
-            genres=str(form.getlist('genres')),  # can have multiple here, store them as a string of the list
-            facebook_link=form['facebook_link']
-        )
-        data = venue
-        db.session.add(venue)
-        db.session.commit()
-        # on successful db insert, flash success
-        flash('Venue ' + data.name + ' was successfully listed!')
-    except:
-        db.session.rollback()
-        error = True
-        print(sys.exc_info())
-        # on unsuccessful db insert, flash an error instead.
-        flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    finally:
-        db.session.close()
+    # called upon submitting the new venue listing form
+    form = request.form
+    data = create_record(form, "Venue")  # can create and insert any of Venue, Artist, and Show
 
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
 
@@ -472,31 +450,9 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
     # called upon submitting the new artist listing form
-    try:
-        form = request.form
-        artist = Artist(
-            name=form['name'],
-            city=form['city'],
-            state=form['state'],
-            phone=form['phone'],
-            genres=str(form.getlist('genres')),  # can have multiple here, store them as a string of the list
-            facebook_link=form['facebook_link']
-        )
-        data = artist
-        db.session.add(artist)
-        db.session.commit()
-        # on successful db insert, flash success
-        flash('Artist ' + data.name + ' was successfully listed!')
-    except:
-        db.session.rollback()
-        error = True
-        print(sys.exc_info())
-        # on unsuccessful db insert, flash an error instead.
-        flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-    finally:
-        db.session.close()
+    form = request.form
+    data = create_record(form, "Artist")  # can create and insert any of Artist, Venue, and Show
 
-    # on successful db insert, flash success
     return render_template('pages/home.html')
 
 
@@ -557,14 +513,44 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
     # called to create new shows in the db, upon submitting new show listing form
-    # TODO: insert form data as a new Show record in the db, instead
+    form = request.form
+    data = create_record(form, "Show")  # can create and insert any of Show, Artist, and Venue
 
-    # on successful db insert, flash success
-    flash('Show was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Show could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
+
+
+# ----------------------------------------------------------------------------#
+# Generic Record Management.
+# ----------------------------------------------------------------------------#
+
+
+def create_record(form, record_type):
+    try:
+        print(form)
+        if record_type != "Show":
+            if record_type == "Venue":
+                data = Venue(**form)
+                name = " " + data.name
+            elif record_type == "Artist":
+                data = Artist(**form)
+                name = " " + data.name
+            data.genres = str(form.getlist('genres'))  # store genres as a string of the list of genres
+        else:
+            data = Show(**form)
+            name = ""
+        db.session.add(data)
+        db.session.commit()
+        # on successful db insert, flash success
+        flash(record_type + name + ' was successfully listed!')
+    except:
+        db.session.rollback()
+        error = True
+        print(sys.exc_info())
+        # on unsuccessful db insert, flash an error instead.
+        flash('An error occurred. ' + record_type + name + ' could not be listed.')
+    finally:
+        db.session.close()
+    return data
 
 
 @app.errorhandler(404)
