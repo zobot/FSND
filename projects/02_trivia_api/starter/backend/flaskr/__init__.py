@@ -48,10 +48,9 @@ def create_app(test_config=None):
         }
         return categories_simplified_dict
 
-    def questions_count_categories(in_request):
-        questions_all = Question.query.order_by(Question.id).all()
+    def questions_count_categories(in_request, questions_selection):
         questions_count = Question.query.count()
-        questions_formatted_paginated = format_paginate_questions(in_request, questions_all)
+        questions_formatted_paginated = format_paginate_questions(in_request, questions_selection)
 
         categories_all = Category.query.all()
         categories_simplified_dict = simplify_categories(categories_all)
@@ -61,7 +60,8 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['GET'])
     def questions():
         print(request.data)
-        out_questions, questions_count, out_categories = questions_count_categories(request)
+        questions_all = Question.query.order_by(Question.id).all()
+        out_questions, questions_count, out_categories = questions_count_categories(request, questions_all)
 
         if len(out_questions) == 0:
             abort(404)
@@ -101,7 +101,8 @@ def create_app(test_config=None):
 
         question_to_delete.delete()
 
-        out_questions, questions_count, out_categories = questions_count_categories(request)
+        questions_all = Question.query.order_by(Question.id).all()
+        out_questions, questions_count, out_categories = questions_count_categories(request, questions_all)
 
         return jsonify({
             'questions': out_questions,
@@ -116,17 +117,20 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['POST'])
     def post_question():
         data = json.loads(request.data)
-        print(data)
+        if 'searchTerm' in data:
+            questions_selection = \
+                Question.query.filter(Question.question.ilike(f"%{data['searchTerm']}%")).order_by(Question.id).all()
 
-        try:
-            new_question = Question(**data)
-            new_question.insert()
-        except SQLAlchemyError:
-            abort(422)
+        else:
+            try:
+                new_question = Question(**data)
+                new_question.insert()
+                questions_selection = Question.query.order_by(Question.id).all()
+            except SQLAlchemyError:
+                abort(422)
 
-        print(new_question.format())
-
-        out_questions, questions_count, out_categories = questions_count_categories(request)
+        out_questions, _, out_categories = questions_count_categories(request, questions_selection)
+        questions_count = len(questions_selection)
 
         return jsonify({
             'questions': out_questions,
@@ -137,17 +141,6 @@ def create_app(test_config=None):
             'status_code': 200,
             'message': 'POST Success',
         })
-
-    '''
-    @TODO: 
-    Create an endpoint to POST a new question, 
-    which will require the question and answer text, 
-    category, and difficulty score.
-  
-    TEST: When you submit a question on the "Add" tab, 
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.  
-    '''
 
     '''
     @TODO: 

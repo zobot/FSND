@@ -156,6 +156,34 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['status_code'], 422)
         self.assertEqual(data['message'], 'Unprocessable')
 
+    def test_post_question_search_success(self):
+        search_json = {'searchTerm': 'Which'}
+        res = self.client().post('/questions', json=search_json)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['status_code'], 200)
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(len(data['categories'].items()))
+        self.assertTrue(len(data['questions']))
+        self.assertEqual(data['message'], 'POST Success')
+
+    def test_post_question_search_empty(self):
+        """
+        Here we have defined that a search query with no matches still
+        returns a successful response with 0 questions.
+        """
+        search_json = {'searchTerm': 'Nonsensical search term'}
+        res = self.client().post('/questions', json=search_json)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['status_code'], 200)
+        self.assertTrue(len(data['questions']) == 0)
+        self.assertEqual(data['message'], 'POST Success')
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
