@@ -59,7 +59,6 @@ def create_app(test_config=None):
 
     @app.route('/questions', methods=['GET'])
     def questions():
-        print(request.data)
         questions_all = Question.query.order_by(Question.id).all()
         out_questions, questions_count, out_categories = questions_count_categories(request, questions_all)
 
@@ -78,7 +77,6 @@ def create_app(test_config=None):
 
     @app.route('/categories', methods=['GET'])
     def categories():
-
         categories_all = Category.query.all()
         categories_simplified_dict = simplify_categories(categories_all)
 
@@ -116,7 +114,7 @@ def create_app(test_config=None):
 
     @app.route('/questions', methods=['POST'])
     def post_question():
-        data = json.loads(request.data)
+        data = request.get_json()
         if 'searchTerm' in data:
             questions_selection = \
                 Question.query.filter(Question.question.ilike(f"%{data['searchTerm']}%")).order_by(Question.id).all()
@@ -163,24 +161,43 @@ def create_app(test_config=None):
             'message': 'GET Success',
         })
 
+    @app.route('/quizzes', methods=['POST'])
+    def quiz():
+        data = request.get_json()
+        category_id = data['quiz_category']['id']
+        if category_id == 0:
+            # all categories are valid here
+            questions_selection = Question.query.all()
+        elif Category.query.get(category_id) is not None:
+            questions_selection = Question.query.filter_by(category=category_id).all()
+        else:
+            # no category with that id
+            abort(422)
 
-    '''
-    @TODO: 
-    Create a POST endpoint to get questions to play the quiz. 
-    This endpoint should take category and previous question parameters 
-    and return a random questions within the given category, 
-    if provided, and that is not one of the previous questions. 
-  
-    TEST: In the "Play" tab, after a user selects "All" or a category,
-    one question at a time is displayed, the user is allowed to answer
-    and shown whether they were correct or not. 
-    '''
+        previous_questions_set = {question for question in data['previous_questions']}
+        questions_not_asked_yet = [question for question in questions_selection
+                                   if question.id not in previous_questions_set]
 
-    '''
-    @TODO: 
-    Create error handlers for all expected errors 
-    including 404 and 422. 
-    '''
+        if len(questions_not_asked_yet) == 0:
+            # no more questions left
+            random_question = False
+        else:
+            random_question = random.choice(questions_not_asked_yet).format()
+
+        return jsonify({
+            'question': random_question,
+            'success': True,
+            'status_code': 200,
+            'message': 'POST Success',
+        })
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            "success": False,
+            "status_code": 400,
+            "message": "Bad request",
+        }), 400
 
     @app.errorhandler(404)
     def resource_not_found(error):
@@ -190,12 +207,28 @@ def create_app(test_config=None):
             "message": "Resource not found",
         }), 404
 
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return jsonify({
+            "success": False,
+            "status_code": 405,
+            "message": "Method not allowed",
+        }), 405
+
     @app.errorhandler(422)
-    def resource_not_found(error):
+    def unprocessable(error):
         return jsonify({
             "success": False,
             "status_code": 422,
             "message": "Unprocessable",
         }), 422
+
+    @app.errorhandler(500)
+    def server_error(error):
+        return jsonify({
+            "success": False,
+            "status_code": 500,
+            "message": "Server error",
+        }), 500
 
     return app

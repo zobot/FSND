@@ -222,6 +222,69 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['status_code'], 422)
         self.assertEqual(data['message'], 'Unprocessable')
 
+    def test_questions_no_patch(self):
+        res = self.client().patch('/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 405)
+        self.assertEqual(data['message'], 'Method not allowed')
+
+    def test_quizzes_no_prev_no_category_success(self):
+        no_prev_no_category_json = {'quiz_category': {'id': 0}, 'previous_questions': []}
+        res = self.client().post('/quizzes', json=no_prev_no_category_json)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['status_code'], 200)
+        self.assertTrue(data['question'])
+        self.assertEqual(data['message'], 'POST Success')
+
+    def test_quizzes_no_prev_category_success(self):
+        no_prev_category_json = {'quiz_category': {'id': 1}, 'previous_questions': []}
+        res = self.client().post('/quizzes', json=no_prev_category_json)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['status_code'], 200)
+        self.assertTrue(data['question'])
+        self.assertEqual(data['message'], 'POST Success')
+
+    def test_quizzes_prev_category_success(self):
+        prev_category_json = {'quiz_category': {'id': 1}, 'previous_questions': [20]}
+        res = self.client().post('/quizzes', json=prev_category_json)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['status_code'], 200)
+        self.assertTrue(data['question'])
+        self.assertEqual(data['message'], 'POST Success')
+
+    def test_quizzes_no_more_questions_sports(self):
+        no_more_questions_json = {'quiz_category': {'id': 6}, 'previous_questions': [10, 11]}
+        res = self.client().post('/quizzes', json=no_more_questions_json)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['status_code'], 200)
+        self.assertTrue(data['question'] is False)
+        self.assertEqual(data['message'], 'POST Success')
+
+    def test_quizzes_unprocessable(self):
+        unprocessable_json = {'quiz_category': {'id': 100}, 'previous_questions': []}
+        res = self.client().post('/quizzes', json=unprocessable_json)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 422)
+        self.assertEqual(data['message'], 'Unprocessable')
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
