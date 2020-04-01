@@ -151,6 +151,17 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(pre_num_questions + 1, post_num_questions)
 
+    def test_post_question_bad_missing_data_400(self):
+        # not all data is present in this request
+        new_question_missing_data = {"question": "New input question?"}
+        res = self.client().post('/questions', json=new_question_missing_data)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 400)
+        self.assertEqual(data['message'], 'Bad request')
+
     def test_post_question_bad_category_422(self):
         new_question_bad_category = self.new_question.copy()
         # categories are 1-6
@@ -162,17 +173,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['status_code'], 422)
         self.assertEqual(data['message'], 'Unprocessable')
-
-    def test_post_question_bad_missing_data_400(self):
-        # not all data is present in this request
-        new_question_missing_data = {"question": "New input question?"}
-        res = self.client().post('/questions', json=new_question_missing_data)
-        data = json.loads(res.data)
-
-        self.assertEqual(res.status_code, 400)
-        self.assertEqual(data['success'], False)
-        self.assertEqual(data['status_code'], 400)
-        self.assertEqual(data['message'], 'Bad request')
 
     def test_post_question_search_success(self):
         # successfully matches at least one question

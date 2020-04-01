@@ -71,16 +71,16 @@ REVIEW_COMMENT
 This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
 
 Endpoints
-GET '/questions'
-GET '/categories'
-GET '/categories/<int:category_id>/questions'
-DELETE '/questions/<int:question_id>'
-POST '/questions'
-POST '/quizzes'
+GET /questions
+GET /categories
+GET /categories/<int:category_id>/questions
+DELETE /questions/<int:question_id>
+POST /questions
+POST /quizzes
 
 
 
-GET '/questions'
+GET /questions
 - Fetches a list of paginated questions
 - Request Arguments: page: Determines which page of questions to display.  Each page is 10 questions long.
 - Returns: If successful, returns a page message with the following structure: 
@@ -156,7 +156,7 @@ Responds:
 with status code 200
 
 
-GET '/categories/<int:category_id>/questions'
+GET /categories/<int:category_id>/questions
 - Fetches a list of paginated questions that belong to category_id
 - Request Arguments: page: Determines which page of questions to display.  Each page is 10 questions long.
 - Returns: If successful, returns a page message with the following structure: 
@@ -170,7 +170,8 @@ Responds:
 'message': 'GET Success',
 'questions': [
   {'answer': 'Brazil', 'category': 6, 'difficulty': 3, 'id': 10, 'question': 'Which is the only team to play in every soccer World Cup tournament?'},
-  {'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'}],
+  {'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'}
+],
 'status_code': 200,
 'success': True,
 'total_questions': 2}
@@ -204,7 +205,7 @@ with status code 404
 DELETE '/questions/<int:question_id>'
 - Deletes the question with id=question_id from the database
 - Request Arguments: None
-- Returns: If successful, returns a a refreshed page message with the following structure: 
+- Returns: If successful, returns a refreshed page message with the following structure: 
 
 Example:
 DELETE /questions/2
@@ -214,16 +215,17 @@ Responds:
 'current_category': None,
 'message': 'DELETE Success',
 'questions': [
-{'answer': 'Tom Cruise', 'category': 5, 'difficulty': 4, 'id': 4, 'question': 'What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?'},
-{'answer': 'Edward Scissorhands', 'category': 5, 'difficulty': 3, 'id': 6, 'question': 'What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?'},
-{'answer': 'Muhammad Ali', 'category': 4, 'difficulty': 1, 'id': 9, 'question': "What boxer's original name is Cassius Clay?"},
-{'answer': 'Brazil', 'category': 6, 'difficulty': 3, 'id': 10, 'question': 'Which is the only team to play in every soccer World Cup tournament?'},
-{'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'},
-{'answer': 'George Washington Carver', 'category': 4, 'difficulty': 2, 'id': 12, 'question': 'Who invented Peanut Butter?'},
-{'answer': 'Lake Victoria', 'category': 3, 'difficulty': 2, 'id': 13, 'question': 'What is the largest lake in Africa?'},
-{'answer': 'The Palace of Versailles', 'category': 3, 'difficulty': 3, 'id': 14, 'question': 'In which royal palace would you find the Hall of Mirrors?'},
-{'answer': 'Agra', 'category': 3, 'difficulty': 2, 'id': 15, 'question': 'The Taj Mahal is located in which Indian city?'},
-{'answer': 'Escher', 'category': 2, 'difficulty': 1, 'id': 16, 'question': 'Which Dutch graphic artist–initials M C was a creator of optical illusions?'}],
+  {'answer': 'Tom Cruise', 'category': 5, 'difficulty': 4, 'id': 4, 'question': 'What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?'},
+  {'answer': 'Edward Scissorhands', 'category': 5, 'difficulty': 3, 'id': 6, 'question': 'What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?'},
+  {'answer': 'Muhammad Ali', 'category': 4, 'difficulty': 1, 'id': 9, 'question': "What boxer's original name is Cassius Clay?"},
+  {'answer': 'Brazil', 'category': 6, 'difficulty': 3, 'id': 10, 'question': 'Which is the only team to play in every soccer World Cup tournament?'},
+  {'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'},
+  {'answer': 'George Washington Carver', 'category': 4, 'difficulty': 2, 'id': 12, 'question': 'Who invented Peanut Butter?'},
+  {'answer': 'Lake Victoria', 'category': 3, 'difficulty': 2, 'id': 13, 'question': 'What is the largest lake in Africa?'},
+  {'answer': 'The Palace of Versailles', 'category': 3, 'difficulty': 3, 'id': 14, 'question': 'In which royal palace would you find the Hall of Mirrors?'},
+  {'answer': 'Agra', 'category': 3, 'difficulty': 2, 'id': 15, 'question': 'The Taj Mahal is located in which Indian city?'},
+  {'answer': 'Escher', 'category': 2, 'difficulty': 1, 'id': 16, 'question': 'Which Dutch graphic artist–initials M C was a creator of optical illusions?'}
+],
 'status_code': 200,
 'success': True,
 'total_questions': 17}
@@ -241,6 +243,132 @@ DELETE /questions/1
 Responds:
 {'message': 'Resource not found', 'status_code': 404, 'success': False} 
 with status code 404
+
+
+
+POST /questions
+- This endpoint has two functionalities depending on the JSON passed into the request.  
+It can either search or create a question.
+
+Search:
+- Request Arguments: JSON data: {'searchTerm': input}.
+
+- Returns: If successful, returns a page message with the following structure where all questions 
+partially match the search term, or an empty question list if no questions match the search term.  
+total_questions refers to the total number of matching questions, even if longer than a single page: 
+
+Example:
+POST /questions
+JSON: {'searchTerm': 'Which'}
+
+Response:
+{'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
+'current_category': None,
+'message': 'POST Success',
+'questions': [
+  {'answer': 'Brazil', 'category': 6, 'difficulty': 3, 'id': 10, 'question': 'Which is the only team to play in every soccer World Cup tournament?'},
+  {'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'},
+  {'answer': 'The Palace of Versailles', 'category': 3, 'difficulty': 3, 'id': 14, 'question': 'In which royal palace would you find the Hall of Mirrors?'},
+  {'answer': 'Agra', 'category': 3, 'difficulty': 2, 'id': 15, 'question': 'The Taj Mahal is located in which Indian city?'},
+  {'answer': 'Escher', 'category': 2, 'difficulty': 1, 'id': 16, 'question': 'Which Dutch graphic artist–initials M C was a creator of optical illusions?'},
+  {'answer': 'Jackson Pollock', 'category': 2, 'difficulty': 2, 'id': 19, 'question': 'Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?'},
+  {'answer': 'Scarab', 'category': 4, 'difficulty': 4, 'id': 23, 'question': 'Which dung beetle was worshipped by the ancient Egyptians?'}
+],
+'status_code': 200,
+'success': True,
+'total_questions': 7}
+with status code 200
+
+If no matches are found:
+
+Example:
+POST /questions
+JSON: {'searchTerm': 'Nonsensical search term'}
+
+Response:
+{'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
+'current_category': None,
+'message': 'POST Success',
+'questions': [],
+'status_code': 200,
+'success': True,
+'total_questions': 0}
+with status code 200
+
+
+POST /questions
+- This endpoint has two functionalities depending on the JSON passed into the request.  
+It can either search or create a question.
+
+Create:
+- Inserts the new question defined by the input JSON into the database.
+- Request Arguments: JSON data: 
+{'question': input_question,
+'answer': input_answer,
+'category': category_id,
+'difficulty': difficulty}.
+
+- Returns: If successful, inserts the question into the database and 
+returns a refreshed page message with the following structure: 
+
+Example:
+POST /questions
+JSON: 
+{'question': 'new_question',
+'answer': 'new_answer',
+'category': 100,
+'difficulty': 3}.
+
+Response:
+{'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
+'current_category': None,
+'message': 'POST Success',
+'questions': [
+  {'answer': 'Tom Cruise', 'category': 5, 'difficulty': 4, 'id': 4, 'question': 'What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?'},
+  {'answer': 'Edward Scissorhands', 'category': 5, 'difficulty': 3, 'id': 6, 'question': 'What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?'},
+  {'answer': 'Muhammad Ali', 'category': 4, 'difficulty': 1, 'id': 9, 'question': "What boxer's original name is Cassius Clay?"},
+  {'answer': 'Brazil', 'category': 6, 'difficulty': 3, 'id': 10, 'question': 'Which is the only team to play in every soccer World Cup tournament?'},
+  {'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'},
+  {'answer': 'George Washington Carver', 'category': 4, 'difficulty': 2, 'id': 12, 'question': 'Who invented Peanut Butter?'},
+  {'answer': 'Lake Victoria', 'category': 3, 'difficulty': 2, 'id': 13, 'question': 'What is the largest lake in Africa?'},
+  {'answer': 'The Palace of Versailles', 'category': 3, 'difficulty': 3, 'id': 14, 'question': 'In which royal palace would you find the Hall of Mirrors?'},
+  {'answer': 'Agra', 'category': 3, 'difficulty': 2, 'id': 15, 'question': 'The Taj Mahal is located in which Indian city?'},
+  {'answer': 'Escher', 'category': 2, 'difficulty': 1, 'id': 16, 'question': 'Which Dutch graphic artist–initials M C was a creator of optical illusions?'}
+],
+'status_code': 200,
+'success': True,
+'total_questions': 19}
+with status code 200
+
+
+Errors:
+
+400:
+If not all input data to define a Question is present in the JSON body, error 400
+
+Example:
+POST /questions
+JSON {'question': 'just question, nothing else'}
+
+Responds:
+{'message': 'Bad request', 'status_code': 400, 'success': False} 
+with status code 400
+
+
+422:
+If the category argument is not a valid category_id, error 422
+
+Example:
+POST /questions
+JSON 
+{'question': 'new_question',
+'answer': 'new_answer',
+'category': 100,
+'difficulty': 3}.
+
+Responds:
+{'message': 'Unprocessable', 'status_code': 422, 'success': False} 
+with status code 422
 
 
 ```
