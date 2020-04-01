@@ -422,6 +422,42 @@ with status code 422
 
 
 
+
+Error responses:
+
+400:
+
+Responds:
+{'message': 'Bad request', 'status_code': 400, 'success': False} 
+with status code 400
+
+
+404:
+
+Responds:
+{'message': 'Resource not found', 'status_code': 404, 'success': False} 
+with status code 404
+
+405:
+
+Responds:
+{'message': 'Method not allowed', 'status_code': 405, 'success': False} 
+with status code 405
+
+422:
+
+Responds:
+{'message': 'Unprocessable', 'status_code': 422, 'success': False} 
+with status code 422
+
+
+500:
+
+Responds:
+{'message': 'Server error', 'status_code': 500, 'success': False} 
+with status code 500
+
+
 ```
 
 
