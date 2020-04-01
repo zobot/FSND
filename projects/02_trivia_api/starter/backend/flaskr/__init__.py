@@ -49,7 +49,7 @@ def create_app(test_config=None):
         return categories_simplified_dict
 
     def questions_count_categories(in_request, questions_selection):
-        questions_count = Question.query.count()
+        questions_count = len(questions_selection)
         questions_formatted_paginated = format_paginate_questions(in_request, questions_selection)
 
         categories_all = Category.query.all()
@@ -129,8 +129,7 @@ def create_app(test_config=None):
             except SQLAlchemyError:
                 abort(422)
 
-        out_questions, _, out_categories = questions_count_categories(request, questions_selection)
-        questions_count = len(questions_selection)
+        out_questions, questions_count, out_categories = questions_count_categories(request, questions_selection)
 
         return jsonify({
             'questions': out_questions,
@@ -142,16 +141,28 @@ def create_app(test_config=None):
             'message': 'POST Success',
         })
 
-    '''
-    @TODO: 
-    Create a POST endpoint to get questions based on a search term. 
-    It should return any questions for whom the search term 
-    is a substring of the question. 
-  
-    TEST: Search by any phrase. The questions list will update to include 
-    only question that include that string within their question. 
-    Try using the word "title" to start. 
-    '''
+    @app.route('/categories/<int:category_id>/questions', methods=['GET'])
+    def questions_by_category(category_id):
+        category = Category.query.get(category_id)
+        if category is None:
+            abort(422)
+
+        questions_in_category = Question.query.filter_by(category=category_id).order_by(Question.id).all()
+        out_questions, questions_count, out_categories = questions_count_categories(request, questions_in_category)
+
+        if len(out_questions) == 0:
+            abort(404)
+
+        return jsonify({
+            'questions': out_questions,
+            'total_questions': questions_count,
+            'categories': out_categories,
+            'current_category': category_id,
+            'success': True,
+            'status_code': 200,
+            'message': 'GET Success',
+        })
+
 
     '''
     @TODO: 

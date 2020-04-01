@@ -184,6 +184,44 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['questions']) == 0)
         self.assertEqual(data['message'], 'POST Success')
 
+    def test_questions_by_category_success(self):
+        res = self.client().get('/categories/1/questions?page=1')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['status_code'], 200)
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(len(data['categories'].items()))
+        self.assertTrue(len(data['questions']))
+        self.assertEqual(data['message'], 'GET Success')
+
+    def test_questions_by_category_less_than_full_num(self):
+        res = self.client().get('/categories/1/questions?page=1')
+        data = json.loads(res.data)
+        category_questions = data['total_questions']
+        total_questions = self.get_current_num_questions()
+
+        self.assertLess(category_questions, total_questions)
+
+    def test_questions_by_category_high_page_num_404(self):
+        res = self.client().get('/categories/1/questions?page=100')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 404)
+        self.assertEqual(data['message'], 'Resource not found')
+
+    def test_questions_by_category_bad_category(self):
+        res = self.client().get('/categories/100/questions?page=1')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 422)
+        self.assertEqual(data['message'], 'Unprocessable')
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
