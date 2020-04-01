@@ -11,3 +11,5 @@ venv
 .Trashes
 ehthumbs.db
 Thumbs.db
+/frontend/npm-debug.log
+/frontend/node_modules/
