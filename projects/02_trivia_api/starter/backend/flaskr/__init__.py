@@ -31,8 +31,8 @@ def create_app(test_config=None):
         response.headers.add("Access-Control-Allow-Methods", "GET,PATCH,POST,DELETE,OPTIONS")
         return response
 
-    def paginate_questions(request, selection):
-        page = request.args.get("page", default=1, type=int)
+    def format_paginate_questions(in_request, selection):
+        page = in_request.args.get("page", default=1, type=int)
         start = (page - 1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
         selection_paginated = selection[start:end]
@@ -46,22 +46,28 @@ def create_app(test_config=None):
         }
         return categories_simplified_dict
 
-    @app.route('/questions', methods=['GET'])
-    def questions():
+    def questions_count_categories(in_request):
         questions_all = Question.query.order_by(Question.id).all()
         questions_count = Question.query.count()
-        questions_formatted_paginated = paginate_questions(request, questions_all)
-
-        if len(questions_formatted_paginated) == 0:
-            abort(404)
+        questions_formatted_paginated = format_paginate_questions(in_request, questions_all)
 
         categories_all = Category.query.all()
         categories_simplified_dict = simplify_categories(categories_all)
 
+        return questions_formatted_paginated, questions_count, categories_simplified_dict
+
+    @app.route('/questions', methods=['GET'])
+    def questions():
+        print(request.data)
+        out_questions, questions_count, out_categories = questions_count_categories(request)
+
+        if len(out_questions) == 0:
+            abort(404)
+
         return jsonify({
-            'questions': questions_formatted_paginated,
+            'questions': out_questions,
             'total_questions': questions_count,
-            'categories': categories_simplified_dict,
+            'categories': out_categories,
             'current_category': None,
             'success': True,
             'status_code': 200,
@@ -82,6 +88,27 @@ def create_app(test_config=None):
             'success': True,
             'status_code': 200,
             'message': 'GET Success',
+        })
+
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        question_to_delete = Question.query.get(question_id)
+
+        if question_to_delete is None:
+            abort(404)
+
+        question_to_delete.delete()
+
+        out_questions, questions_count, out_categories = questions_count_categories(request)
+
+        return jsonify({
+            'questions': out_questions,
+            'total_questions': questions_count,
+            'categories': out_categories,
+            'current_category': None,
+            'success': True,
+            'status_code': 200,
+            'message': 'DELETE Success',
         })
 
 
