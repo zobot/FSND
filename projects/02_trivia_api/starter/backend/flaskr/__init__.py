@@ -30,7 +30,20 @@ def create_app(test_config=None):
         response.headers.add("Access-Control-Allow-Methods", "GET,PATCH,POST,DELETE,OPTIONS")
         return response
 
+    def paginate_questions(request, selection):
+        page = request.args.get("page", default=1, type=int)
+        start = (page - 1) * QUESTIONS_PER_PAGE
+        end = start + QUESTIONS_PER_PAGE
+        selection_paginated = selection[start:end]
+        selection_formatted_paginated = [question.format() for question in selection_paginated]
+        return selection_formatted_paginated
 
+    def simplify_categories(categories_selection):
+        categories_simplified_dict = {
+            category.id: category.type
+            for category in categories_selection
+        }
+        return categories_simplified_dict
 
     '''
     @TODO: 
@@ -40,22 +53,17 @@ def create_app(test_config=None):
     @app.route('/questions', methods=['GET'])
     def questions():
         questions_all = Question.query.order_by(Question.id).all()
-        questions_formatted = [question.format() for question in questions_all]
-
-        # TODO: Actually paginate this and not just populate with first page
-        questions_paginated = questions_formatted[:QUESTIONS_PER_PAGE]
+        questions_count = Question.query.count()
+        questions_formatted_paginated = paginate_questions(request, questions_all)
 
         categories_all = Category.query.all()
-        categories_simplified_dict = {
-            category.id: category.type
-            for category in categories_all
-        }
+        categories_simplified_dict = simplify_categories(categories_all)
 
         return jsonify({
-            'questions': questions_paginated,
-            'totalQuestions': len(questions_all),
+            'questions': questions_formatted_paginated,
+            'total_questions': questions_count,
             'categories': categories_simplified_dict,
-            'currentCategory': '',
+            'current_category': None,
             'success': True,
             'error': 200,
         })
