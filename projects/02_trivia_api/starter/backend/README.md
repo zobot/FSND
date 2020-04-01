@@ -66,9 +66,8 @@ One note before you delve into your tasks: for each endpoint you are expected to
 8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
 
-REVIEW_COMMENT
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
+API Documentation:
 
 Endpoints
 GET /questions
@@ -369,6 +368,58 @@ JSON
 Responds:
 {'message': 'Unprocessable', 'status_code': 422, 'success': False} 
 with status code 422
+
+
+
+POST /quizzes
+- Fetches a list of paginated questions that belong to category_id
+- Request Arguments: JSON data
+{'quiz_category': {'id': id}, 'previous_questions':[list_of_previous_questions]}
+- Returns: If successful, returns a random single question that is not in list_of_previous_questions
+ with the following structure.
+If id=0, all categories are included in the question pool: 
+
+Example:
+POST /quizzes
+JSON
+{'quiz_category': {'id': 6}, 'previous_questions':[10]}
+
+Responds:
+{'message': 'POST Success',
+'question': 
+{'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'},
+'status_code': 200,
+'success': True}
+with status code 200
+
+If there are no questions that have not been previously asked in the given category, 'question' is set to False
+
+Example:
+POST /quizzes
+JSON
+{'quiz_category': {'id': 6}, 'previous_questions':[10, 11]}
+
+Responds:
+{'message': 'POST Success',
+'question': False,
+'status_code': 200,
+'success': True}
+with status code 200
+
+
+Errors:
+
+422
+If the quiz_category argument is not a valid category_id, error 422
+
+POST /quizzes
+JSON
+{'quiz_category': {'id': 100}, 'previous_questions':[10]}
+
+Responds:
+{'message': 'Unprocessable', 'status_code': 422, 'success': False} 
+with status code 422
+
 
 
 ```
