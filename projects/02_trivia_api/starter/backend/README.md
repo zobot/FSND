@@ -73,8 +73,8 @@ This README is missing documentation of your endpoints. Below is an example for 
 Endpoints
 GET '/questions'
 GET '/categories'
-GET '/categories/[category_id]/questions'
-DELETE '/questions/[question_id]'
+GET '/categories/<int:category_id>/questions'
+DELETE '/questions/<int:question_id>'
 POST '/questions'
 POST '/quizzes'
 
@@ -83,10 +83,10 @@ POST '/quizzes'
 GET '/questions'
 - Fetches a list of paginated questions
 - Request Arguments: page: Determines which page of questions to display.  Each page is 10 questions long.
-- Returns: If successful, returns a message with the following structure: 
+- Returns: If successful, returns a page message with the following structure: 
 
 Example:
-/questions?page=1
+GET /questions?page=1
 
 Responds:
 {'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
@@ -116,7 +116,7 @@ Errors:
 If the page is not a positive integer, returns error 400:
 
 Example:
-/questions?page=-1
+GET /questions?page=-1
 
 Responds:
 {'message': 'Bad request', 'status_code': 400, 'success': False} 
@@ -126,7 +126,7 @@ with status code 400
 If there are no questions on the given page, returns error 404:
 
 Example:
-/questions?page=100
+GET /questions?page=100
 
 Responds:
 {'message': 'Resource not found', 'status_code': 404, 'success': False} 
@@ -140,24 +140,29 @@ GET '/categories'
 - Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
 
 Example:
-/categories
+GET /categories
 
 Responds:
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+{'categories': 
+  {'1': 'Science',
+  '2': 'Art',
+  '3': 'Geography',
+  '4': 'History',
+  '5': 'Entertainment',
+  '6': 'Sports'},
+'message': 'GET Success',
+'status_code': 200,
+'success': True}
+with status code 200
 
 
-GET '/categories/[category_id]/questions'
+GET '/categories/<int:category_id>/questions'
 - Fetches a list of paginated questions that belong to category_id
 - Request Arguments: page: Determines which page of questions to display.  Each page is 10 questions long.
-- Returns: If successful, returns a message with the following structure: 
+- Returns: If successful, returns a page message with the following structure: 
 
 Example:
-/categories/6/questions?page=1
+GET /categories/6/questions?page=1
 
 Responds:
 {'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
@@ -178,7 +183,7 @@ Errors:
 If the page is not a positive integer, returns error 400:
 
 Example:
-/categories/1/questions?page=-1
+GET /categories/1/questions?page=-1
 
 Responds:
 {'message': 'Bad request', 'status_code': 400, 'success': False} 
@@ -188,12 +193,54 @@ with status code 400
 If there are no questions on the given page, returns error 404:
 
 Example:
-/categories/1/questions?page=100
+GET /categories/1/questions?page=100
 
 Responds:
 {'message': 'Resource not found', 'status_code': 404, 'success': False} 
 with status code 404
 
+
+
+DELETE '/questions/<int:question_id>'
+- Deletes the question with id=question_id from the database
+- Request Arguments: None
+- Returns: If successful, returns a a refreshed page message with the following structure: 
+
+Example:
+DELETE /questions/2
+
+Responds:
+{'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
+'current_category': None,
+'message': 'DELETE Success',
+'questions': [
+{'answer': 'Tom Cruise', 'category': 5, 'difficulty': 4, 'id': 4, 'question': 'What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?'},
+{'answer': 'Edward Scissorhands', 'category': 5, 'difficulty': 3, 'id': 6, 'question': 'What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?'},
+{'answer': 'Muhammad Ali', 'category': 4, 'difficulty': 1, 'id': 9, 'question': "What boxer's original name is Cassius Clay?"},
+{'answer': 'Brazil', 'category': 6, 'difficulty': 3, 'id': 10, 'question': 'Which is the only team to play in every soccer World Cup tournament?'},
+{'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'},
+{'answer': 'George Washington Carver', 'category': 4, 'difficulty': 2, 'id': 12, 'question': 'Who invented Peanut Butter?'},
+{'answer': 'Lake Victoria', 'category': 3, 'difficulty': 2, 'id': 13, 'question': 'What is the largest lake in Africa?'},
+{'answer': 'The Palace of Versailles', 'category': 3, 'difficulty': 3, 'id': 14, 'question': 'In which royal palace would you find the Hall of Mirrors?'},
+{'answer': 'Agra', 'category': 3, 'difficulty': 2, 'id': 15, 'question': 'The Taj Mahal is located in which Indian city?'},
+{'answer': 'Escher', 'category': 2, 'difficulty': 1, 'id': 16, 'question': 'Which Dutch graphic artist–initials M C was a creator of optical illusions?'}],
+'status_code': 200,
+'success': True,
+'total_questions': 17}
+with status code 200
+
+
+Errors:
+
+404:
+If the supplied question_id doesn't match any questions, return error 404:
+
+Example:
+DELETE /questions/1
+
+Responds:
+{'message': 'Resource not found', 'status_code': 404, 'success': False} 
+with status code 404
 
 
 ```
