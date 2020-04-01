@@ -37,9 +37,25 @@ def create_app(test_config=None):
     Create an endpoint to handle GET requests 
     for all available categories.
     '''
-    @app.route('/', methods=['GET'])
-    def index():
+    @app.route('/questions', methods=['GET'])
+    def questions():
+        questions_all = Question.query.order_by(Question.id).all()
+        questions_formatted = [question.format() for question in questions_all]
+
+        # TODO: Actually paginate this and not just populate with first page
+        questions_paginated = questions_formatted[:QUESTIONS_PER_PAGE]
+
+        categories_all = Category.query.all()
+        categories_simplified_dict = {
+            category.id: category.type
+            for category in categories_all
+        }
+
         return jsonify({
+            'questions': questions_paginated,
+            'totalQuestions': len(questions_all),
+            'categories': categories_simplified_dict,
+            'currentCategory': '',
             'success': True,
             'error': 200,
         })
