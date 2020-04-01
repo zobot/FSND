@@ -60,6 +60,11 @@ def create_app(test_config=None):
 
     @app.route('/questions', methods=['GET'])
     def questions():
+        page = request.args.get("page", default=1, type=int)
+        if page <= 0:
+            # only positive pages
+            abort(400)
+
         questions_all = Question.query.order_by(Question.id).all()
         out_questions, questions_count, out_categories = questions_count_categories(request, questions_all)
 
@@ -158,6 +163,11 @@ def create_app(test_config=None):
 
     @app.route('/categories/<int:category_id>/questions', methods=['GET'])
     def questions_in_category(category_id):
+        page = request.args.get("page", default=1, type=int)
+        if page <= 0:
+            # only positive pages
+            abort(400)
+
         category = Category.query.get(category_id)
         if category is None:
             # invalid category

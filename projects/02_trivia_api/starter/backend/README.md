@@ -78,10 +78,17 @@ DELETE '/questions/[question_id]'
 POST '/questions'
 POST '/quizzes'
 
+
+
 GET '/questions'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
+- Fetches a list of paginated questions
+- Request Arguments: page: Determines which page of questions to display.  Each page is 10 questions long.
+- Returns: If successful, returns a message with the following structure: 
+
+Example:
+/questions?page=1
+
+Responds:
 {'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
 'current_category': None,
 'message': 'GET Success',
@@ -100,24 +107,94 @@ GET '/questions'
 'status_code': 200,
 'success': True,
 'total_questions': 19}
+with status code 200
 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+
+Errors:
+
+400:
+If the page is not a positive integer, returns error 400:
+
+Example:
+/questions?page=-1
+
+Responds:
+{'message': 'Bad request', 'status_code': 400, 'success': False} 
+with status code 400
+
+404:
+If there are no questions on the given page, returns error 404:
+
+Example:
+/questions?page=100
+
+Responds:
+{'message': 'Resource not found', 'status_code': 404, 'success': False} 
+with status code 404
+
+
 
 GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
 - Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
+
+Example:
+/categories
+
+Responds:
 {'1' : "Science",
 '2' : "Art",
 '3' : "Geography",
 '4' : "History",
 '5' : "Entertainment",
 '6' : "Sports"}
+
+
+GET '/categories/[category_id]/questions'
+- Fetches a list of paginated questions that belong to category_id
+- Request Arguments: page: Determines which page of questions to display.  Each page is 10 questions long.
+- Returns: If successful, returns a message with the following structure: 
+
+Example:
+/categories/6/questions?page=1
+
+Responds:
+{'categories': {'1': 'Science', '2': 'Art', '3': 'Geography', '4': 'History', '5': 'Entertainment', '6': 'Sports'},
+'current_category': 6,
+'message': 'GET Success',
+'questions': [
+  {'answer': 'Brazil', 'category': 6, 'difficulty': 3, 'id': 10, 'question': 'Which is the only team to play in every soccer World Cup tournament?'},
+  {'answer': 'Uruguay', 'category': 6, 'difficulty': 4, 'id': 11, 'question': 'Which country won the first ever soccer World Cup in 1930?'}],
+'status_code': 200,
+'success': True,
+'total_questions': 2}
+with status code 200
+
+
+Errors:
+
+400:
+If the page is not a positive integer, returns error 400:
+
+Example:
+/categories/1/questions?page=-1
+
+Responds:
+{'message': 'Bad request', 'status_code': 400, 'success': False} 
+with status code 400
+
+404:
+If there are no questions on the given page, returns error 404:
+
+Example:
+/categories/1/questions?page=100
+
+Responds:
+{'message': 'Resource not found', 'status_code': 404, 'success': False} 
+with status code 404
+
+
 
 ```
 

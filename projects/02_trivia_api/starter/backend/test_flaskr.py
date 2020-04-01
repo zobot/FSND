@@ -50,8 +50,6 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/questions?page=1')
         data = json.loads(res.data)
 
-        print(data)
-
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertEqual(data['status_code'], 200)
@@ -87,6 +85,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['status_code'], 404)
         self.assertEqual(data['message'], 'Resource not found')
+
+    def test_questions_neg_page_num_400(self):
+        # no negative pages
+        res = self.client().get('/questions?page=-1')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 400)
+        self.assertEqual(data['message'], 'Bad request')
 
     def test_categories_success(self):
         res = self.client().get('/categories')
@@ -196,7 +204,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'POST Success')
 
     def test_questions_by_category_success(self):
-        res = self.client().get('/categories/1/questions?page=1')
+        category = 6
+        res = self.client().get(f'/categories/{category}/questions?page=1')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -205,6 +214,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['total_questions'])
         self.assertTrue(len(data['categories'].items()))
         self.assertTrue(len(data['questions']))
+        for question in data['questions']:
+            self.assertEqual(question['category'], category)
         self.assertEqual(data['message'], 'GET Success')
 
     def test_questions_by_category_less_than_full_num(self):
@@ -225,6 +236,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['status_code'], 404)
         self.assertEqual(data['message'], 'Resource not found')
+
+    def test_questions_by_category_neg_page_num_400(self):
+        # no negative pages
+        res = self.client().get('/categories/1/questions?page=-1')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 400)
+        self.assertEqual(data['message'], 'Bad request')
 
     def test_questions_by_category_bad_category(self):
         # no category 100
