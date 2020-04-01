@@ -412,6 +412,7 @@ Errors:
 422
 If the quiz_category argument is not a valid category_id, error 422
 
+Example:
 POST /quizzes
 JSON
 {'quiz_category': {'id': 100}, 'previous_questions':[10]}
@@ -431,7 +432,6 @@ Responds:
 {'message': 'Bad request', 'status_code': 400, 'success': False} 
 with status code 400
 
-
 404:
 
 Responds:
@@ -449,7 +449,6 @@ with status code 405
 Responds:
 {'message': 'Unprocessable', 'status_code': 422, 'success': False} 
 with status code 422
-
 
 500:
 
