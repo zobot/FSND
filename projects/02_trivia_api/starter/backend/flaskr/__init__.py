@@ -65,7 +65,8 @@ def create_app(test_config=None):
             'categories': categories_simplified_dict,
             'current_category': None,
             'success': True,
-            'error': 200,
+            'status_code': 200,
+            'message': 'GET Success',
         })
 
 
