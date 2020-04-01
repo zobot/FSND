@@ -41,19 +41,16 @@ class TriviaTestCase(unittest.TestCase):
         pass
 
     def get_current_num_questions(self):
+        # helper for noting changes in the number of questions in the table
         res = self.client().get('/questions?page=1')
         num_questions = json.loads(res.data)['total_questions']
         return num_questions
 
-
-
-    """
-    TODO
-    Write at least one test for each test for successful operation and for expected errors.
-    """
     def test_questions_success(self):
         res = self.client().get('/questions?page=1')
         data = json.loads(res.data)
+
+        print(data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
@@ -82,6 +79,7 @@ class TriviaTestCase(unittest.TestCase):
             self.assertNotEqual(data1['questions'][i], data2['questions'][i])
 
     def test_questions_high_page_num_404(self):
+        # no page 100
         res = self.client().get('/questions?page=100')
         data = json.loads(res.data)
 
@@ -120,6 +118,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(pre_num_questions - 1, post_num_questions)
 
     def test_delete_question_404(self):
+        # no question with id 1
         res = self.client().delete('/questions/1')
         data = json.loads(res.data)
 
@@ -146,6 +145,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_post_question_bad_category_422(self):
         new_question_bad_category = self.new_question.copy()
+        # categories are 1-6
         new_question_bad_category["category"] = -5
         res = self.client().post('/questions', json=new_question_bad_category)
         data = json.loads(res.data)
@@ -156,6 +156,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'Unprocessable')
 
     def test_post_question_bad_missing_data_400(self):
+        # not all data is present in this request
         new_question_missing_data = {"question": "New input question?"}
         res = self.client().post('/questions', json=new_question_missing_data)
         data = json.loads(res.data)
@@ -166,6 +167,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'Bad request')
 
     def test_post_question_search_success(self):
+        # successfully matches at least one question
         search_json = {'searchTerm': 'Which'}
         res = self.client().post('/questions', json=search_json)
         data = json.loads(res.data)
@@ -211,9 +213,11 @@ class TriviaTestCase(unittest.TestCase):
         category_questions = data['total_questions']
         total_questions = self.get_current_num_questions()
 
+        # num of questions in a category should be strictly less than total question num
         self.assertLess(category_questions, total_questions)
 
     def test_questions_by_category_high_page_num_404(self):
+        # no page 100
         res = self.client().get('/categories/1/questions?page=100')
         data = json.loads(res.data)
 
@@ -223,6 +227,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'Resource not found')
 
     def test_questions_by_category_bad_category(self):
+        # no category 100
         res = self.client().get('/categories/100/questions?page=1')
         data = json.loads(res.data)
 
@@ -232,6 +237,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'Unprocessable')
 
     def test_questions_no_patch_405(self):
+        # there's no endpoint for PATCH requests
         res = self.client().patch('/questions')
         data = json.loads(res.data)
 
@@ -292,6 +298,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'POST Success')
 
     def test_quizzes_unprocessable(self):
+        # no category 100
         unprocessable_json = {'quiz_category': {'id': 100}, 'previous_questions': []}
         res = self.client().post('/quizzes', json=unprocessable_json)
         data = json.loads(res.data)
