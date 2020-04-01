@@ -71,10 +71,12 @@ REVIEW_COMMENT
 This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
 
 Endpoints
+GET '/questions'
 GET '/categories'
-GET ...
-POST ...
-DELETE ...
+GET '/categories/[category_id]/questions'
+DELETE '/questions/[question_id]'
+POST '/questions'
+POST '/quizzes'
 
 GET '/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
@@ -98,3 +100,9 @@ createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
 ```
+
+or run 
+```
+sh run_tests.sh
+```
+while in the backend directory.

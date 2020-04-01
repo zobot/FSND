@@ -15,25 +15,20 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
-
-
-    '''
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-    '''
     cors = CORS(app, origins="*")
-    #cors = CORS(app, resources={r"*": {"origins": "*"}})
 
-
-    '''
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    '''
     @app.after_request
     def after_request(response):
         response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
         response.headers.add("Access-Control-Allow-Methods", "GET,PATCH,POST,DELETE,OPTIONS")
         return response
 
+    #  ----------------------------------------------------------------
+    #  Helper functions
+    #  ----------------------------------------------------------------
+
     def format_paginate_questions(in_request, selection):
+        """Selects a page from selection and formats the output list"""
         page = in_request.args.get("page", default=1, type=int)
         start = (page - 1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
@@ -42,6 +37,7 @@ def create_app(test_config=None):
         return selection_formatted_paginated
 
     def simplify_categories(categories_selection):
+        """Transforms a list of Category's into an {id:type} dict"""
         categories_simplified_dict = {
             category.id: category.type
             for category in categories_selection
@@ -49,6 +45,7 @@ def create_app(test_config=None):
         return categories_simplified_dict
 
     def questions_count_categories(in_request, questions_selection):
+        """Returns a tuple of (questions, count, categories) formatted nicely and paginated"""
         questions_count = len(questions_selection)
         questions_formatted_paginated = format_paginate_questions(in_request, questions_selection)
 
@@ -56,6 +53,10 @@ def create_app(test_config=None):
         categories_simplified_dict = simplify_categories(categories_all)
 
         return questions_formatted_paginated, questions_count, categories_simplified_dict
+
+    #  ----------------------------------------------------------------
+    #  API Endpoints
+    #  ----------------------------------------------------------------
 
     @app.route('/questions', methods=['GET'])
     def questions():
@@ -94,13 +95,18 @@ def create_app(test_config=None):
     def delete_question(question_id):
         question_to_delete = Question.query.get(question_id)
 
+        # no question of that id
         if question_to_delete is None:
             abort(404)
 
         question_to_delete.delete()
 
+        # repopulate page
         questions_all = Question.query.order_by(Question.id).all()
         out_questions, questions_count, out_categories = questions_count_categories(request, questions_all)
+
+        # conscious decision to not return 404 if out_questions is empty,
+        # since we want the response to reflect the DELETE and not the subsequent paginated questions
 
         return jsonify({
             'questions': out_questions,
@@ -116,17 +122,28 @@ def create_app(test_config=None):
     def post_question():
         data = request.get_json()
         if 'searchTerm' in data:
+            # using the search endpoint
             questions_selection = \
                 Question.query.filter(Question.question.ilike(f"%{data['searchTerm']}%")).order_by(Question.id).all()
 
         else:
+            # using the create endpoint
+
+            # validate that the request contains the desired data
+            request_contains_question_data = ("question" in data) and ("answer" in data) and \
+                                             ("category" in data) and ("difficulty" in data)
+            if not request_contains_question_data:
+                abort(400)
+
             try:
                 new_question = Question(**data)
                 new_question.insert()
                 questions_selection = Question.query.order_by(Question.id).all()
             except SQLAlchemyError:
+                # bad data
                 abort(422)
 
+        # either populate search results page or regular page
         out_questions, questions_count, out_categories = questions_count_categories(request, questions_selection)
 
         return jsonify({
@@ -140,15 +157,17 @@ def create_app(test_config=None):
         })
 
     @app.route('/categories/<int:category_id>/questions', methods=['GET'])
-    def questions_by_category(category_id):
+    def questions_in_category(category_id):
         category = Category.query.get(category_id)
         if category is None:
+            # invalid category
             abort(422)
 
         questions_in_category = Question.query.filter_by(category=category_id).order_by(Question.id).all()
         out_questions, questions_count, out_categories = questions_count_categories(request, questions_in_category)
 
         if len(out_questions) == 0:
+            # no questions in that category
             abort(404)
 
         return jsonify({
@@ -166,7 +185,7 @@ def create_app(test_config=None):
         data = request.get_json()
         category_id = data['quiz_category']['id']
         if category_id == 0:
-            # all categories are valid here
+            # all categories are valid here, none specified
             questions_selection = Question.query.all()
         elif Category.query.get(category_id) is not None:
             questions_selection = Question.query.filter_by(category=category_id).all()
@@ -174,6 +193,7 @@ def create_app(test_config=None):
             # no category with that id
             abort(422)
 
+        # filter out previously asked questions
         previous_questions_set = {question for question in data['previous_questions']}
         questions_not_asked_yet = [question for question in questions_selection
                                    if question.id not in previous_questions_set]
@@ -190,6 +210,10 @@ def create_app(test_config=None):
             'status_code': 200,
             'message': 'POST Success',
         })
+
+    #  ----------------------------------------------------------------
+    #  Error handlers
+    #  ----------------------------------------------------------------
 
     @app.errorhandler(400)
     def bad_request(error):

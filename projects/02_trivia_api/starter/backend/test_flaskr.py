@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flaskr import create_app
 from models import setup_db, Question, Category
 
-from db_password import db_password
+from db_password import username, db_password
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -19,7 +19,6 @@ class TriviaTestCase(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = "trivia_test"
-        username = 'zoe'
         self.database_path = "postgres://{}:{}@{}/{}".format(username, db_password, 'localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 
@@ -156,6 +155,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['status_code'], 422)
         self.assertEqual(data['message'], 'Unprocessable')
 
+    def test_post_question_bad_missing_data_400(self):
+        new_question_missing_data = {"question": "New input question?"}
+        res = self.client().post('/questions', json=new_question_missing_data)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['status_code'], 400)
+        self.assertEqual(data['message'], 'Bad request')
+
     def test_post_question_search_success(self):
         search_json = {'searchTerm': 'Which'}
         res = self.client().post('/questions', json=search_json)
@@ -222,7 +231,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['status_code'], 422)
         self.assertEqual(data['message'], 'Unprocessable')
 
-    def test_questions_no_patch(self):
+    def test_questions_no_patch_405(self):
         res = self.client().patch('/questions')
         data = json.loads(res.data)
 
@@ -232,7 +241,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'Method not allowed')
 
     def test_quizzes_no_prev_no_category_success(self):
-        no_prev_no_category_json = {'quiz_category': {'id': 0}, 'previous_questions': []}
+        id = 0
+        no_prev_no_category_json = {'quiz_category': {'id': id}, 'previous_questions': []}
         res = self.client().post('/quizzes', json=no_prev_no_category_json)
         data = json.loads(res.data)
 
@@ -243,7 +253,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'POST Success')
 
     def test_quizzes_no_prev_category_success(self):
-        no_prev_category_json = {'quiz_category': {'id': 1}, 'previous_questions': []}
+        id = 1
+        no_prev_category_json = {'quiz_category': {'id': id}, 'previous_questions': []}
         res = self.client().post('/quizzes', json=no_prev_category_json)
         data = json.loads(res.data)
 
@@ -251,10 +262,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertEqual(data['status_code'], 200)
         self.assertTrue(data['question'])
+        self.assertTrue(data['question']['category'] == id)
         self.assertEqual(data['message'], 'POST Success')
 
     def test_quizzes_prev_category_success(self):
-        prev_category_json = {'quiz_category': {'id': 1}, 'previous_questions': [20]}
+        id = 1
+        prev_question = 20
+        prev_category_json = {'quiz_category': {'id': id}, 'previous_questions': [prev_question]}
         res = self.client().post('/quizzes', json=prev_category_json)
         data = json.loads(res.data)
 
@@ -262,6 +276,8 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertEqual(data['status_code'], 200)
         self.assertTrue(data['question'])
+        self.assertTrue(data['question']['category'] == id)
+        self.assertTrue(data['question']['id'] != prev_question)
         self.assertEqual(data['message'], 'POST Success')
 
     def test_quizzes_no_more_questions_sports(self):
