@@ -190,7 +190,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_post_question_search_empty(self):
         """
-        Here we have defined that a search query with no matches still
+        Here we have defined that a search quUnittests in test_ncc.pyery with no matches still
         returns a successful response with 0 questions.
         """
         search_json = {'searchTerm': 'Nonsensical search term'}
