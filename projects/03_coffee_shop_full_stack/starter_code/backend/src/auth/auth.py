@@ -5,9 +5,9 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+AUTH0_DOMAIN = 'zoe-coffeeshop.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
+API_AUDIENCE = 'coffee'
 
 ## AuthError Exception
 '''
@@ -31,7 +31,34 @@ class AuthError(Exception):
     return the token part of the header
 '''
 def get_token_auth_header():
-   raise Exception('Not Implemented')
+    auth = request.headers.get('Authorization', None)
+    if auth is None:
+        raise AuthError(
+            {
+                "status": "missing_authorization_header",
+                "message": "No authorization header",
+            },
+            401)
+
+    header_parts = auth.split(" ")
+    if len(header_parts) != 2:
+        raise AuthError(
+            {
+                "status": "malformed_authorization_header",
+                "message": "Authorization header isn't length 2",
+            },
+            401)
+
+    if header_parts[0].lower() != "bearer":
+        raise AuthError(
+            {
+                "status": "malformed_authorization_header",
+                "message": "Authorization header doesn't contain bearer",
+            },
+            401)
+
+    token = header_parts[1]
+    return token
 
 '''
 @TODO implement check_permissions(permission, payload) method

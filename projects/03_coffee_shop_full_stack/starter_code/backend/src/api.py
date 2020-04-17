@@ -1,32 +1,39 @@
 import os
 from flask import Flask, request, jsonify, abort
-from sqlalchemy import exc
+from sqlalchemy.exc import SQLAlchemyError
 import json
 from flask_cors import CORS
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
+from .database.initialize_db_mock_data import initialize_db_mock_data
 from .auth.auth import AuthError, requires_auth
 
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
+
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
+initialize_db_mock_data()
+
 
 ## ROUTES
-'''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
+@app.route('/drinks')
+def drinks():
+    try:
+        drinks_db = Drink.query.all()
+        return jsonify({
+            "success": True,
+            "status_code": 200,
+            "drinks": [drink.short() for drink in drinks_db]
+        }), 200
+    except SQLAlchemyError as e:
+        abort(500)
 
 
 '''
@@ -76,35 +83,37 @@ CORS(app)
 
 
 ## Error Handling
-'''
-Example error handling for unprocessable entity
-'''
+@app.errorhandler(AuthError)
+def auth_error(error):
+    return jsonify({
+        "success": False,
+        "error": 403,
+        "message": "auth_error"
+    }), 403
+
+
+@app.errorhandler(404)
+def resource_not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
+
+
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
-
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
-'''
-
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above 
-'''
+        "success": False,
+        "error": 422,
+        "message": "unprocessable"
+    }), 422
 
 
-'''
-@TODO implement error handler for AuthError
-    error handler should conform to general task above 
-'''
+@app.errorhandler(500)
+def server_db_error(error):
+    return jsonify({
+        "success": False,
+        "error": 500,
+        "message": "server_db_error"
+    }), 500
