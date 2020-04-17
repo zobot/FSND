@@ -49,7 +49,6 @@ def drinks():
 def drinks_detail():
     # TODO: add auth for get:drinks-detail
     try:
-        print('in drinks-detail')
         drinks_db = Drink.query.all()
         return jsonify({
             "success": True,
