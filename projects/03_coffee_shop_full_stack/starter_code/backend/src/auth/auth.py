@@ -14,6 +14,8 @@ API_AUDIENCE = 'coffee'
 AuthError Exception
 A standardized way to communicate auth failure modes
 '''
+
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
@@ -33,29 +35,23 @@ class AuthError(Exception):
 def get_token_auth_header():
     auth = request.headers.get('Authorization', None)
     if auth is None:
-        raise AuthError(
-            {
-                "status": "missing_authorization_header",
-                "message": "No authorization header",
-            },
-            401)
+        raise AuthError(error={
+            'description': "No authorization header",
+            'code': "missing_authorization_header",
+        }, status_code=401)
 
     header_parts = auth.split(" ")
     if len(header_parts) != 2:
-        raise AuthError(
-            {
-                "status": "malformed_authorization_header",
-                "message": "Authorization header isn't length 2",
-            },
-            401)
+        raise AuthError(error={
+            'description': "Authorization header is not length 2",
+            'code': "malformed_authorization_header",
+        }, status_code=401)
 
     if header_parts[0].lower() != "bearer":
-        raise AuthError(
-            {
-                "status": "malformed_authorization_header",
-                "message": "Authorization header doesn't contain bearer",
-            },
-            401)
+        raise AuthError(error={
+            'description': "Authorization header does not contain bearer",
+            'code': "malformed_authorization_header",
+        }, status_code=401)
 
     token = header_parts[1]
     return token
@@ -105,9 +101,10 @@ def requires_auth(permission=''):
         @wraps(f)
         def wrapper(*args, **kwargs):
             token = get_token_auth_header()
-            payload = verify_decode_jwt(token)
-            check_permissions(permission, payload)
-            return f(payload, *args, **kwargs)
+            #payload = verify_decode_jwt(token)
+            #check_permissions(permission, payload)
+            #return f(payload, *args, **kwargs)
+            return f(*args, **kwargs)
 
         return wrapper
     return requires_auth_decorator

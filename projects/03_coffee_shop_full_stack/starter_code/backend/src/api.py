@@ -45,7 +45,9 @@ def drinks():
         or appropriate status code indicating reason for failure
 '''
 @app.route('/drinks-detail')
+@requires_auth(permission='get:drinks-detail')
 def drinks_detail():
+    # TODO: add auth for get:drinks-detail
     try:
         print('in drinks-detail')
         drinks_db = Drink.query.all()
@@ -67,6 +69,11 @@ def drinks_detail():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=['POST'])
+@requires_auth(permission='post:drinks')
+def post_drink():
+    raise NotImplementedError('Not Implemented Yet')
+
 
 
 '''
@@ -80,6 +87,10 @@ def drinks_detail():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth(permission='patch:drinks')
+def patch_drink(id):
+    raise NotImplementedError('Not Implemented Yet')
 
 
 '''
@@ -92,6 +103,10 @@ def drinks_detail():
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:id>', methods=['DELETE'])
+@requires_auth(permission='delete:drinks')
+def delete_drink(id):
+    raise NotImplementedError('Not Implemented Yet')
 
 
 ## Error Handling
@@ -99,9 +114,9 @@ def drinks_detail():
 def auth_error(error):
     return jsonify({
         "success": False,
-        "error": 403,
-        "message": "auth_error"
-    }), 403
+        "error": error.status_code,
+        "message": error.error,
+    }), error.status_code
 
 
 @app.errorhandler(404)
@@ -111,6 +126,15 @@ def resource_not_found(error):
         "error": 404,
         "message": "resource not found"
     }), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return jsonify({
+        "success": False,
+        "error": 405,
+        "message": "method not allowed"
+    }), 405
 
 
 @app.errorhandler(422)
