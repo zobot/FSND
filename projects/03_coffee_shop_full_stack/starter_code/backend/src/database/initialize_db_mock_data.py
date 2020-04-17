@@ -10,14 +10,15 @@ def initialize_db_mock_data():
         ),
         Drink(
             title="Mocha",
-            recipe='[{"color": "black", "name": "coffee", "parts": 1}, ' +
-                   '{"color": "brown", "name": "chocolate", "parts": 1}]'
+            recipe='[{"color": "brown", "name": "chocolate", "parts": 1}, ' +
+                   '{"color": "black", "name": "coffee", "parts": 1}]'
         ),
         Drink(
             title="Cappuccino",
-            recipe='[{"color": "black", "name": "coffee", "parts": 1}, ' +
-                     '{"color": "white", "name": "milk", "parts": 1}]'
-    ),
+            recipe='[{"color": "gray", "name": "milk", "parts": 1}, ' +
+                   '{"color": "black", "name": "coffee", "parts": 1}]'
+
+        ),
     ]
     [drink.insert() for drink in drinks]
     print('initialized db')
