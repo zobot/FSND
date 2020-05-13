@@ -3,6 +3,7 @@ from .models import Drink
 
 
 def initialize_db_mock_data():
+    """ Creates some mock data for testing db functionality """
     drinks = [
         Drink(
             title="Coffee",

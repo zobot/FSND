@@ -27,67 +27,51 @@ initialize_db_mock_data()
 def drinks():
     try:
         drinks_db = Drink.query.all()
-        return jsonify({
-            "success": True,
-            "status_code": 200,
-            "drinks": [drink.short() for drink in drinks_db]
-        }), 200
-    except SQLAlchemyError as e:
+    except SQLAlchemyError as e:  # server error, db uninitialized?
         abort(500)
+    return jsonify({
+        "success": True,
+        "status_code": 200,
+        "drinks": [drink.short() for drink in drinks_db]
+    }), 200
 
 
-'''
-@TODO implement endpoint
-    GET /drinks-detail
-        it should require the 'get:drinks-detail' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
 @app.route('/drinks-detail')
 @requires_auth(permission='get:drinks-detail')
 def drinks_detail():
     try:
         drinks_db = Drink.query.all()
-        return jsonify({
-            "success": True,
-            "status_code": 200,
-            "drinks": [drink.long() for drink in drinks_db]
-        }), 200
-    except SQLAlchemyError as e:
+    except SQLAlchemyError as e:   # server error, db uninitialized?
         abort(500)
+    return jsonify({
+        "success": True,
+        "status_code": 200,
+        "drinks": [drink.long() for drink in drinks_db]
+    }), 200
 
 
-'''
-@TODO implement endpoint
-    POST /drink    drink_dict = request.get_json()
-    print(drink_dict)
-    recipe = drink_dict['recipe']
-    print('recipe: ', recipe)
-    drink = Drink(
-        title=drink_dict['title'],
-        recipe=json.dumps(recipe)
-    )
-    drink.insert()s
-        it should create a new row in the drinks table
-        it should require the 'post:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-        or appropriate status code indicating reason for failure
-'''
 @app.route('/drinks', methods=['POST'])
 @requires_auth(permission='post:drinks')
 def post_drink():
-    # TODO: error checking
     drink_dict = request.get_json()
-    print(drink_dict)
-    recipe = drink_dict['recipe']
-    print('recipe: ', recipe)
-    drink = Drink(
-        title=drink_dict['title'],
-        recipe=json.dumps(recipe)
-    )
-    drink.insert()
+    try:
+        recipe = drink_dict['recipe']
+        title = drink_dict['title']
+    except KeyError:  # request contains no recipe or no title
+        abort(422)
+
+    try:
+        drink = Drink(
+            title=title,
+            recipe=json.dumps(recipe)
+        )
+    except SQLAlchemyError as e:  # bad input
+        abort(422)
+
+    try:
+        drink.insert()
+    except SQLAlchemyError as e:   # server error, db uninitialized?
+        abort(500)
 
     return jsonify({
         "success": True,
@@ -95,24 +79,15 @@ def post_drink():
         "drinks": [drink.long()],
     }), 200
 
-'''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
-'''
+
 @app.route('/drinks/<int:id>', methods=['PATCH'])
 @requires_auth(permission='patch:drinks')
 def patch_drink(id):
     try:
         drink_matching = Drink.query.get(id)
-    except SQLAlchemyError:
+    except SQLAlchemyError:  # not found
         abort(404)
+
     try:
         drink_dict = request.get_json()
         if 'recipe' in drink_dict:
@@ -121,9 +96,14 @@ def patch_drink(id):
         if 'title' in drink_dict:
             title = drink_dict['title']
             drink_matching.title = title
-        drink_matching.update()
-    except SQLAlchemyError:
+    except SQLAlchemyError:  # bad input
         abort(422)
+
+    try:
+        drink_matching.update()
+    except SQLAlchemyError:  # server error
+        abort(500)
+
     return jsonify({
         "success": True,
         "status_code": 200,
@@ -131,27 +111,19 @@ def patch_drink(id):
     }), 200
 
 
-'''
-@TODO implement endpoint
-    DELETE /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should delete the corresponding row for <id>
-        it should require the 'delete:drinks' permission
-    returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
-        or appropriate status code indicating reason for failure
-'''
 @app.route('/drinks/<int:id>', methods=['DELETE'])
 @requires_auth(permission='delete:drinks')
 def delete_drink(id):
     try:
         drink_matching = Drink.query.get(id)
-    except SQLAlchemyError:
+    except SQLAlchemyError:  # not found
         abort(404)
+
     try:
         drink_matching.delete()
-    except SQLAlchemyError:
+    except SQLAlchemyError:  # server error
         abort(500)
+
     return jsonify({
         "success": True,
         "status_code": 200,
