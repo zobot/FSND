@@ -16,6 +16,9 @@ A standardized way to communicate auth failure modes
 '''
 
 
+"""UDACITY REVIEWER:  most of this code is copied with small modification from the lessons preceding the project."""
+
+
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
