@@ -47,7 +47,6 @@ def drinks():
 @app.route('/drinks-detail')
 @requires_auth(permission='get:drinks-detail')
 def drinks_detail():
-    # TODO: add auth for get:drinks-detail
     try:
         drinks_db = Drink.query.all()
         return jsonify({
@@ -61,7 +60,15 @@ def drinks_detail():
 
 '''
 @TODO implement endpoint
-    POST /drinks
+    POST /drink    drink_dict = request.get_json()
+    print(drink_dict)
+    recipe = drink_dict['recipe']
+    print('recipe: ', recipe)
+    drink = Drink(
+        title=drink_dict['title'],
+        recipe=json.dumps(recipe)
+    )
+    drink.insert()s
         it should create a new row in the drinks table
         it should require the 'post:drinks' permission
         it should contain the drink.long() data representation
@@ -71,9 +78,22 @@ def drinks_detail():
 @app.route('/drinks', methods=['POST'])
 @requires_auth(permission='post:drinks')
 def post_drink():
-    raise NotImplementedError('Not Implemented Yet')
+    # TODO: error checking
+    drink_dict = request.get_json()
+    print(drink_dict)
+    recipe = drink_dict['recipe']
+    print('recipe: ', recipe)
+    drink = Drink(
+        title=drink_dict['title'],
+        recipe=json.dumps(recipe)
+    )
+    drink.insert()
 
-
+    return jsonify({
+        "success": True,
+        "status_code": 200,
+        "drinks": [drink.long()],
+    }), 200
 
 '''
 @TODO implement endpoint
@@ -89,7 +109,26 @@ def post_drink():
 @app.route('/drinks/<int:id>', methods=['PATCH'])
 @requires_auth(permission='patch:drinks')
 def patch_drink(id):
-    raise NotImplementedError('Not Implemented Yet')
+    try:
+        drink_matching = Drink.query.get(id)
+    except SQLAlchemyError:
+        abort(404)
+    try:
+        drink_dict = request.get_json()
+        if 'recipe' in drink_dict:
+            recipe = drink_dict['recipe']
+            drink_matching.recipe = json.dumps(recipe)
+        if 'title' in drink_dict:
+            title = drink_dict['title']
+            drink_matching.title = title
+        drink_matching.update()
+    except SQLAlchemyError:
+        abort(422)
+    return jsonify({
+        "success": True,
+        "status_code": 200,
+        "drinks": [drink_matching.long()],
+    }), 200
 
 
 '''
@@ -105,7 +144,19 @@ def patch_drink(id):
 @app.route('/drinks/<int:id>', methods=['DELETE'])
 @requires_auth(permission='delete:drinks')
 def delete_drink(id):
-    raise NotImplementedError('Not Implemented Yet')
+    try:
+        drink_matching = Drink.query.get(id)
+    except SQLAlchemyError:
+        abort(404)
+    try:
+        drink_matching.delete()
+    except SQLAlchemyError:
+        abort(500)
+    return jsonify({
+        "success": True,
+        "status_code": 200,
+        "delete": id,
+    }), 200
 
 
 ## Error Handling
