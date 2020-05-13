@@ -29,6 +29,7 @@ def drinks():
         drinks_db = Drink.query.all()
     except SQLAlchemyError as e:  # server error, db uninitialized?
         abort(500)
+
     return jsonify({
         "success": True,
         "status_code": 200,
@@ -43,6 +44,7 @@ def drinks_detail():
         drinks_db = Drink.query.all()
     except SQLAlchemyError as e:   # server error, db uninitialized?
         abort(500)
+
     return jsonify({
         "success": True,
         "status_code": 200,
